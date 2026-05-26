@@ -14,7 +14,7 @@
 1. Подключитесь к вашему VPS по SSH.
 2. Склонируйте этот репозиторий или просто скачайте скрипт:
    ```bash
-   curl -O https://raw.githubusercontent.com/BSetiStudio/matgproxy/main/proxy.py
+   curl -O https://raw.githubusercontent.com/BSetiStudio/matgproxy/main/ubuntu/proxy.py
 3. Запустите скрипт:
 
    ```bash
