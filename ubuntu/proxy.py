@@ -6,14 +6,11 @@ import subprocess
 import sys
 import time
 import urllib.request
-import hmac
-import hashlib
 
 CONFIG_FILE = "/etc/tg_proxy_config.txt"
-PORT = 2438  # Порт изменен по вашему запросу
+PORT = 2438  # Жестко ставим нужный вам порт
 USER = "tg_user"
-# Для MTProto нужен 32-символьный hex. Префикс ee делает прокси невидимым для DPI (Fake-TLS)
-SECRET = "ee" + secrets.token_hex(16)
+SECRET = "ee" + secrets.token_hex(16)  # Стандартный Fake-TLS секрет
 LANG = "ru"
 
 STRINGS = {
@@ -23,7 +20,7 @@ STRINGS = {
         "active": "РАБОТАЕТ (ПОРТ: {})",
         "inactive": "ОСТАНОВЛЕН",
         "login": " Текущий Логин:  {}",
-        "pass": " Текущий Секрет (Secret): {}",
+        "pass": " Текущий Секрет: {}",
         "opt1": " 1. Показать ссылку для подключения в Telegram",
         "opt2": " 2. Изменить ПОРТ прокси",
         "opt3": " 3. Изменить ЛОГИН",
@@ -118,26 +115,16 @@ def save_config():
 
 load_config()
 
-# --- Встроенное ядро обработки обфусцированного MTProto трафика ---
+# Встроенный легковесный обработчик MTProto-соединений
 async def handle_mtproto_client(reader, writer):
     try:
-        # Читаем первичный хэндшейк обфускации (64 байта)
         initial_packet = await reader.readexactly(64)
         if len(initial_packet) < 64:
             writer.close()
             return
         
-        # Пул официальных DC (Data Centers) Telegram
-        tg_dcs = {
-            1: ("149.154.175.50", 443),
-            2: ("149.154.167.51", 443),
-            3: ("149.154.175.100", 443),
-            4: ("149.154.167.91", 443),
-            5: ("91.108.56.130", 443)
-        }
-        
-        # Для базового MTProto прокси перенаправляем на стабильный DC2/DC4 по умолчанию
-        dest_addr, dest_port = tg_dcs[2]
+        # Основные IP адреса серверов Telegram (DC2 по умолчанию)
+        dest_addr, dest_port = "149.154.167.51", 443
         
         try:
             remote_reader, remote_writer = await asyncio.open_connection(dest_addr, dest_port)
@@ -145,7 +132,6 @@ async def handle_mtproto_client(reader, writer):
             writer.close()
             return
 
-        # Пересылаем стартовый пакет авторизации на сервера Telegram
         remote_writer.write(initial_packet)
         await remote_writer.drain()
 
@@ -169,8 +155,9 @@ async def handle_mtproto_client(reader, writer):
 
 def setup_systemd_and_cli():
     script_path = os.path.abspath(__file__)
+    # Исправленный юнит-файл: запускает сам Python-скрипт в режиме демона
     service_content = f"""[Unit]
-Description=Telegram MTProto Obfuscated Proxy Server
+Description=Telegram MTProto Python Proxy Server
 After=network.target
 
 [Service]
@@ -261,7 +248,7 @@ def get_tg_link():
             .strip()
         )
     except Exception:
-        ip = "ВАШ_IP_АДРЕС"
+        ip = "YOUR_SERVER_IP"
     return f"tg://proxy?server={ip}&port={PORT}&secret={SECRET}"
 
 def show_menu():
