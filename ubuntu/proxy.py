@@ -6,13 +6,12 @@ import subprocess
 import sys
 import time
 import urllib.request
-import hashlib
-import struct
 
 CONFIG_FILE = "/etc/tg_proxy_config.txt"
-PORT = 2438  # Нужный вам порт
+PORT = 2438  # Жестко прописан ваш порт
 USER = "tg_user"
-SECRET = secrets.token_hex(16)  # Чистый 32-значный hex для стабильного MTProto
+# Для MTProto v2 (движка mtg) нужен секрет со специальным префиксом ee для Fake-TLS
+SECRET = "ee" + secrets.token_hex(16)
 LANG = "ru"
 
 STRINGS = {
@@ -21,7 +20,7 @@ STRINGS = {
         "status": " Текущий статус службы: ",
         "active": "РАБОТАЕТ (ПОРТ: {})",
         "inactive": "ОСТАНОВЛЕН",
-        "login": " Текущий Логин:  {}",
+        "login": " Текущий Логин (для меню): {}",
         "pass": " Текущий Секрет (Secret): {}",
         "opt1": " 1. Показать ссылку для подключения в Telegram",
         "opt2": " 2. Изменить ПОРТ прокси",
@@ -40,11 +39,11 @@ STRINGS = {
         "port_changed": " Порт изменен. Не забудьте перезапустить прокси (пункт 6).",
         "enter_login": "\nВведите новый логин (сейчас {}): ",
         "login_changed": " Логин изменен.",
-        "enter_pass": "\nВведите новый секрет (32 hex-символа): ",
+        "enter_pass": "\nВведите новый секрет (32 hex-символа, желательно с ee): ",
         "pass_changed": " Секрет изменен.",
         "new_pass_gen": " Сгенерирован новый секрет: {}",
         "restarting": "\n Перезапуск службы...",
-        "restarted": " MTProto прокси успешно перезапущен!",
+        "restarted": " MTProto Прокси успешно перезапущен!",
         "stopping": "\n Остановка службы...",
         "stopped": " Прокси остановлен.",
         "testing": "\nТестирование скорости соединения с Telegram...",
@@ -117,71 +116,47 @@ def save_config():
 
 load_config()
 
-# --- Полноценное ядро MTProto проксирования (разбор зашифрованного хэндшейка) ---
-class MTProtoCrypto:
-    def __init__(self, initial_packet, secret_bytes):
-        self.secret = secret_bytes
-        # Извлекаем ключи дешифрации из 64-байтного пакета Telegram
-        self.encrypt_key = initial_packet[8:40]
-        self.encrypt_iv = initial_packet[40:56]
-        self.decrypt_key = initial_packet[32:0:-1]
-        self.decrypt_iv = initial_packet[48:32:-1]
+def install_mtg_binary():
+    """Скачивает и устанавливает стабильное Go-ядро mtg, если его нет"""
+    binary_path = "/usr/local/bin/mtg"
+    if os.path.exists(binary_path):
+        return True
+    
+    print("Установка ядра MTProto (mtg)... / Installing MTProto core...")
+    arch = subprocess.run("uname -m", shell=True, capture_output=True, text=True).stdout.strip()
+    
+    if "arm" in arch or "aarch64" in arch:
+        url = "https://github.com/9seconds/mtg/releases/download/v2.1.7/mtg-2.1.7-linux-arm64.tar.gz"
+        folder = "mtg-2.1.7-linux-arm64"
+    else:
+        url = "https://github.com/9seconds/mtg/releases/download/v2.1.7/mtg-2.1.7-linux-amd64.tar.gz"
+        folder = "mtg-2.1.7-linux-amd64"
 
-async def handle_mtproto_client(reader, writer):
     try:
-        # Читаем стартовые 64 байта
-        initial_packet = await reader.readexactly(64)
-        
-        # Простая валидация MTProto хэндшейка
-        if initial_packet[60:64] == b'\xef\xef\xef\xef':
-            writer.close()
-            return
-            
-        secret_bytes = bytes.fromhex(SECRET)
-        
-        # Официальный IP адрес DC2 (Европа)
-        tg_ip = "149.154.167.51"
-        tg_port = 443
-
-        try:
-            remote_reader, remote_writer = await asyncio.open_connection(tg_ip, tg_port)
-        except Exception:
-            writer.close()
-            return
-
-        # Перенаправляем стартовые данные
-        remote_writer.write(initial_packet)
-        await remote_writer.drain()
-
-        async def pipe(src, dst):
-            try:
-                while True:
-                    data = await src.read(16384)
-                    if not data:
-                        break
-                    dst.write(data)
-                    await dst.drain()
-            except Exception:
-                pass
-            finally:
-                dst.close()
-
-        asyncio.create_task(pipe(reader, remote_writer))
-        asyncio.create_task(pipe(remote_reader, writer))
-    except Exception:
-        writer.close()
+        subprocess.run(f"wget -qO /tmp/mtg.tar.gz {url} || curl -sL -o /tmp/mtg.tar.gz {url}", shell=True, check=True)
+        subprocess.run("tar -xzf /tmp/mtg.tar.gz -C /tmp/", shell=True, check=True)
+        subprocess.run(f"sudo mv /tmp/{folder}/mtg {binary_path}", shell=True, check=True)
+        subprocess.run(f"sudo chmod +x {binary_path}", shell=True, check=True)
+        subprocess.run("rm -rf /tmp/mtg*", shell=True)
+        return True
+    except Exception as e:
+        print(f"Ошибка установки ядра: {e}")
+        sys.exit(1)
 
 def setup_systemd_and_cli():
+    install_mtg_binary()
     script_path = os.path.abspath(__file__)
+    
+    # ИСПРАВЛЕНО: Теперь аргументы mtg передаются строго по синтаксису движка v2
+    # Секрет передается через флаг -s, чтобы systemd не путал его с путем к конфигу
     service_content = f"""[Unit]
-Description=Telegram MTProto Native Python Proxy Server
+Description=Telegram MTProto Proxy Server (mtg)
 After=network.target
 
 [Service]
 Type=simple
 User=root
-WorkingDirectory={os.path.dirname(script_path)}
-ExecStart=/usr/bin/python3 {script_path} --daemon
+ExecStart=/usr/local/bin/mtg run -b 0.0.0.0:{PORT} -s {SECRET}
 Restart=always
 RestartSec=3
 
@@ -209,6 +184,7 @@ def full_uninstall():
     subprocess.run("sudo rm /etc/systemd/system/tg-proxy.service 2>/dev/null", shell=True)
     subprocess.run("sudo systemctl daemon-reload", shell=True)
     subprocess.run("sudo rm /usr/local/bin/matg 2>/dev/null", shell=True)
+    subprocess.run("sudo rm /usr/local/bin/mtg 2>/dev/null", shell=True)
     subprocess.run(f"sudo rm {CONFIG_FILE} 2>/dev/null", shell=True)
     print(txt["uninstalled"])
     try:
@@ -266,7 +242,6 @@ def get_tg_link():
         )
     except Exception:
         ip = "YOUR_VPS_IP"
-    # Для стабильного MTProto ссылки формируются с чистым hex секретом
     return f"tg://proxy?server={ip}&port={PORT}&secret={SECRET}"
 
 def show_menu():
@@ -332,7 +307,7 @@ def show_menu():
                 print(txt["pass_changed"])
             input(txt["press_enter"])
         elif choice == "5":
-            SECRET = secrets.token_hex(16)
+            SECRET = "ee" + secrets.token_hex(16)
             save_config()
             print(txt["new_pass_gen"].format(SECRET))
             input(txt["press_enter"])
@@ -360,30 +335,22 @@ def show_menu():
         elif choice == "0":
             break
 
-async def run_server():
-    server = await asyncio.start_server(handle_mtproto_client, "0.0.0.0", PORT)
-    async with server:
-        await server.serve_forever()
-
 if __name__ == "__main__":
-    if "--daemon" in sys.argv:
-        asyncio.run(run_server())
-    else:
-        if not os.path.exists("/etc/systemd/system/tg-proxy.service"):
-            os.system("clear")
-            print("Choose language. (Выберите язык прокси-панели)")
-            print("1. English")
-            print("2. Русский")
-            l_choice = input("Select (1-2): ").strip()
-            LANG = "en" if l_choice == "1" else "ru"
+    if not os.path.exists("/etc/systemd/system/tg-proxy.service"):
+        os.system("clear")
+        print("Choose language. (Выберите язык прокси-панели)")
+        print("1. English")
+        print("2. Русский")
+        l_choice = input("Select (1-2): ").strip()
+        LANG = "en" if l_choice == "1" else "ru"
 
-            print(STRINGS[LANG]["restarting"])
-            save_config()
-            setup_systemd_and_cli()
-            subprocess.run("sudo systemctl start tg-proxy", shell=True)
-            print(STRINGS[LANG]["init_done"])
-            print(f"{STRINGS[LANG]['link_title']}\n{get_tg_link()}")
-            sys.exit(0)
+        print(STRINGS[LANG]["restarting"])
+        save_config()
+        setup_systemd_and_cli()
+        subprocess.run("sudo systemctl start tg-proxy", shell=True)
+        print(STRINGS[LANG]["init_done"])
+        print(f"{STRINGS[LANG]['link_title']}\n{get_tg_link()}")
+        sys.exit(0)
 
-        show_menu()
+    show_menu()
         
