@@ -3,7 +3,7 @@
 # Выходим при любой ошибке
 set -e
 
-echo "=== Установка MTProto Прокси ==="
+echo "=== Установка MTProto Прокси ==?"
 
 # 1. Проверяем, запущен ли скрипт от root
 if [ "$EUID" -ne 0 ]; then
@@ -11,7 +11,7 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-# 2. Проверяем Docker. Если нет — ставим официальным скриптом
+# 2. Проверяем Docker. Если нет — ставим
 if command -v docker >/dev/null 2>&1; then
     echo "[✓] Docker уже установлен в системе"
 else
@@ -25,29 +25,28 @@ else
     echo "[✓] Docker успешно установлен"
 fi
 
-# 3. Параметры для прокси (Сменили порт на 5443)
+# 3. Параметры для прокси (Порт 5443)
 PORT=5443
 CONTAINER_NAME="mtproto-proxy"
 
-# Генерируем строго 32-символьный хекс-секрет (16 байт)
-RAW_SECRET=$(openssl rand -hex 16)
-FINAL_SECRET="ee$RAW_SECRET"
+# Генерируем чистый 32-символьный хекс-секрет
+FINAL_SECRET=$(openssl rand -hex 16)
 
 # 4. Очистка старого контейнера, если он был
 docker stop $CONTAINER_NAME >/dev/null 2>&1 || true
 docker rm $CONTAINER_NAME >/dev/null 2>&1 || true
 
-# 5. Запуск контейнера (маппим внешний порт 5443 на внутренний 443 контейнера)
+# 5. Запуск контейнера
 echo "[...] Запуск Docker-контейнера MTProto..."
 docker run -d --name=$CONTAINER_NAME --restart=always \
   -p $PORT:443 \
-  -e SECRET=$RAW_SECRET \
+  -e SECRET=$FINAL_SECRET \
   seriyps/mtproto-proxy:latest >/dev/null
 
 # 6. Получение внешнего IP-адреса сервера
 IP=$(curl -s ifconfig.me || echo "ВАШ_IP_АДРЕС")
 
-# 7. Вывод результатов
+# 7. Вывод результатов (Секрет передается "как есть", ровно 32 символа)
 TG_LINK="https://t.me/proxy?server=$IP&port=$PORT&secret=$FINAL_SECRET"
 
 echo -e "\n=================================================="
