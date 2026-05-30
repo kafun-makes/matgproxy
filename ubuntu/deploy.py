@@ -42,7 +42,7 @@ def main():
     # 4. Запуск Docker-контейнера (используем проверенный образ от Telegram)
     docker_cmd = (
         f"docker run -d --name={container_name} --restart=always "
-        f"-p {port}:443 -e SECRET={secret} telegramproxy/mtproxy:latest"
+        f"-p {port}:443 -e SECRET={secret} seriyps/mtproto-proxy:latest"
     )
     run_command(docker_cmd, "Запуск Docker-контейнера MTProto")
 
