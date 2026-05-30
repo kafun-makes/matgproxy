@@ -11,75 +11,6 @@ PORT=2834
 SECRET=""
 LANG_CHOICE="ru"
 
-# Строки локализации
-declare -A STR_TITLE STR_STATUS STR_ACTIVE STR_INACTIVE STR_SECRET STR_OPT1 STR_OPT2 STR_OPT3 STR_OPT4 STR_OPT5 STR_OPT6 STR_OPT7 STR_OPT8 STR_OPT9 STR_OPT0 STR_CHOICE STR_LINK_TITLE STR_PRESS_ENTER STR_ENTER_PORT STR_PORT_CHANGED STR_ENTER_SECRET STR_SECRET_CHANGED STR_NEW_SECRET_GEN STR_RESTARTING STR_RESTARTED STR_STOPPING STR_STOPPED STR_TESTING STR_TEST_FAIL STR_UNINSTALLING STR_UNINSTALLED STR_INIT_DONE
-
-# RU
-STR_TITLE[ru]="         УПРАВЛЕНИЕ ТЕЛЕГРАМ MTPROTO [matg]        "
-STR_STATUS[ru]=" Текущий статус службы: "
-STR_ACTIVE[ru]="РАБОТАЕТ (ПОРТ: %s)"
-STR_INACTIVE[ru]="ОСТАНОВЛЕН"
-STR_SECRET[ru]=" Текущий Секрет (ee...): %s"
-STR_OPT1[ru]=" 1. Показать ссылку для подключения в Telegram"
-STR_OPT2[ru]=" 2. Изменить ПОРТ прокси"
-STR_OPT3[ru]=" 3. Изменить СЕКРЕТ вручную"
-STR_OPT4[ru]=" 4. Сгенерировать новый случайный секрет (с обходом блокировок)"
-STR_OPT5[ru]=" 5. Запустить / Перезапустить прокси"
-STR_OPT6[ru]=" 6. Остановить прокси"
-STR_OPT7[ru]=" 7. Тест пинга до серверов Telegram"
-STR_OPT8[ru]=" 8. ПОЛНОЕ УДАЛЕНИЕ (Деинсталляция)"
-STR_OPT0[ru]=" 0. Выйти из меню"
-STR_CHOICE[ru]="Выберите действие (0-8): "
-STR_LINK_TITLE[ru]=$'\n Ссылка для Telegram:'
-STR_PRESS_ENTER[ru]=$'\nНажмите Enter для возврата в меню...'
-STR_ENTER_PORT[ru]=$'\nВведите новый порт (сейчас %s): '
-STR_PORT_CHANGED[ru]=" Порт изменен. Не забудьте перезапустить прокси."
-STR_ENTER_SECRET[ru]=$'\nВведите новый секрет (32 символа hex или с префиксом ee): '
-STR_SECRET_CHANGED[ru]=" Секрет изменен."
-STR_NEW_SECRET_GEN[ru]=" Сгенерирован новый безопасный секрет с префиксом 'ee'."
-STR_RESTARTING[ru]=$'\n Перезапуск службы...'
-STR_RESTARTED[ru]=" Прокси успешно перезапущен!"
-STR_STOPPING[ru]=$'\n Остановка службы...'
-STR_STOPPED[ru]=" Прокси остановлен."
-STR_TESTING[ru]=$'\nТестирование пинга до Telegram...'
-STR_TEST_FAIL[ru]=" Ошибка теста: Серверы Telegram недоступны."
-STR_UNINSTALLING[ru]=$'\nНачинаем полное удаление прокси из системы...'
-STR_UNINSTALLED[ru]="Прокси полностью удален. Команда matg больше недоступна."
-STR_INIT_DONE[ru]=$'\n Настройка завершена! Команда '\''matg'\'' зарегистрирована.'
-
-# EN
-STR_TITLE[en]="         TELEGRAM MTPROTO MANAGEMENT [matg]        "
-STR_STATUS[en]=" Current service status: "
-STR_ACTIVE[en]="RUNNING (PORT: %s)"
-STR_INACTIVE[en]="STOPPED"
-STR_SECRET[en]=" Current Secret (ee...): %s"
-STR_OPT1[en]=" 1. Show Telegram connection link"
-STR_OPT2[en]=" 2. Change proxy PORT"
-STR_OPT3[en]=" 3. Change SECRET manually"
-STR_OPT4[en]=" 4. Generate new random secret (with anti-dpi prefix)"
-STR_OPT5[en]=" 5. Start / Restart proxy"
-STR_OPT6[en]=" 6. Stop proxy"
-STR_OPT7[en]=" 7. Ping test to Telegram"
-STR_OPT8[en]=" 8. FULL UNINSTALL (Remove completely)"
-STR_OPT0[en]=" 0. Exit menu"
-STR_CHOICE[en]="Select action (0-8): "
-STR_LINK_TITLE[en]=$'\n Telegram Link:'
-STR_PRESS_ENTER[en]=$'\nPress Enter to return to menu...'
-STR_ENTER_PORT[en]=$'\nEnter new port (current %s): '
-STR_PORT_CHANGED[en]=" Port changed. Don't forget to restart proxy."
-STR_ENTER_SECRET[en]=$'\nEnter new secret (32 hex chars or with ee prefix): '
-STR_SECRET_CHANGED[en]=" Secret changed."
-STR_NEW_SECRET_GEN[en]=" New secure secret with 'ee' prefix generated."
-STR_RESTARTING[en]=$'\n Restarting service...'
-STR_RESTARTED[en]=" Proxy successfully restarted!"
-STR_STOPPING[en]=$'\n Stopping service...'
-STR_STOPPED[en]=" Proxy stopped."
-STR_TESTING[en]=$'\nTesting ping to Telegram cores...'
-STR_TEST_FAIL[en]=" Test failed: Telegram cores are unreachable."
-STR_UNINSTALLING[en]=$'\nStarting full uninstallation from the system...'
-STR_UNINSTALLED[en]="Proxy completely removed. The 'matg' command is now disabled."
-STR_INIT_DONE[en]=$'\n Setup complete! Command '\''matg'\'' is registered.'
-
 # Проверка на root
 if [ "$EUID" -ne 0 ]; then
   echo "Пожалуйста, запустите скрипт от имени root (через sudo)."
@@ -102,7 +33,7 @@ save_config() {
 }
 
 generate_secret() {
-    # Генерируем современный секрет с префиксом "ee" для обхода блокировок (Fake TLS)
+    # Генерируем секрет с префиксом "ee" для обхода DPI блокировок (Fake TLS)
     echo "ee$(openssl rand -hex 16)"
 }
 
@@ -112,11 +43,75 @@ get_public_ip() {
     echo "${ip:-YOUR_SERVER_IP}"
 }
 
-# Установка бинарника mtg, если его нет
+# Функция динамического перевода строк (на замену сломанным массивам)
+get_str() {
+    local key=$1
+    if [ "$LANG_CHOICE" = "ru" ]; then
+        case $key in
+            title) echo "         УПРАВЛЕНИЕ ТЕЛЕГРАМ MTPROTO [matg]        " ;;
+            status) echo -n " Текущий статус службы: " ;;
+            inactive) echo "ОСТАНОВЛЕН" ;;
+            opt1) echo " 1. Показать ссылку для подключения в Telegram" ;;
+            opt2) echo " 2. Изменить ПОРТ прокси" ;;
+            opt3) echo " 3. Изменить СЕКРЕТ вручную" ;;
+            opt4) echo " 4. Сгенерировать новый случайный секрет" ;;
+            opt5) echo " 5. Запустить / Перезапустить прокси" ;;
+            opt6) echo " 6. Остановить прокси" ;;
+            opt7) echo " 7. Тест пинга до серверов Telegram" ;;
+            opt8) echo " 8. ПОЛНОЕ УДАЛЕНИЕ (Деинсталляция)" ;;
+            opt0) echo " 0. Выйти из меню" ;;
+            choice) echo -n "Выберите действие (0-8): " ;;
+            link_title) echo -e "\n Ссылка для Telegram:" ;;
+            press_enter) echo -e "\nНажмите Enter для возврата в меню..." ;;
+            port_changed) echo " Порт изменен. Не забудьте перезапустить прокси (пункт 5)." ;;
+            secret_changed) echo " Секрет изменен. Не забудьте перезапустить прокси." ;;
+            new_secret_gen) echo " Сгенерирован новый безопасный секрет с префиксом 'ee'." ;;
+            restarting) echo -e "\n Перезапуск службы..." ;;
+            restarted) echo " Прокси успешно перезапущен!" ;;
+            stopping) echo -e "\n Остановка службы..." ;;
+            stopped) echo " Прокси остановлен." ;;
+            testing) echo -e "\nТестирование пинга до Telegram..." ;;
+            test_fail) echo " Ошибка теста: Серверы Telegram недоступны." ;;
+            uninstalling) echo -e "\nНачинаем полное удаление прокси из системы..." ;;
+            uninstalled) echo "Прокси полностью удален. Команда matg больше недоступна." ;;
+            init_done) echo -e "\n Настройка завершена! Команда 'matg' зарегистрирована." ;;
+        esac
+    else
+        case $key in
+            title) echo "         TELEGRAM MTPROTO MANAGEMENT [matg]        " ;;
+            status) echo -n " Current service status: " ;;
+            inactive) echo "STOPPED" ;;
+            opt1) echo " 1. Show Telegram connection link" ;;
+            opt2) echo " 2. Change proxy PORT" ;;
+            opt3) echo " 3. Change SECRET manually" ;;
+            opt4) echo " 4. Generate new random secret" ;;
+            opt5) echo " 5. Start / Restart proxy" ;;
+            opt6) echo " 6. Stop proxy" ;;
+            opt7) echo " 7. Ping test to Telegram" ;;
+            opt8) echo " 8. FULL UNINSTALL (Remove completely)" ;;
+            opt0) echo " 0. Exit menu" ;;
+            choice) echo -n "Select action (0-8): " ;;
+            link_title) echo -e "\n Telegram Link:" ;;
+            press_enter) echo -e "\nPress Enter to return to menu..." ;;
+            port_changed) echo " Port changed. Don't forget to restart proxy (option 5)." ;;
+            secret_changed) echo " Secret changed. Don't forget to restart proxy." ;;
+            new_secret_gen) echo " New secure secret with 'ee' prefix generated." ;;
+            restarting) echo -e "\n Restarting service..." ;;
+            restarted) echo " Proxy successfully restarted!" ;;
+            stopping) echo -e "\n Stopping service..." ;;
+            stopped) echo " Proxy stopped." ;;
+            testing) echo -e "\nTesting ping to Telegram cores..." ;;
+            test_fail) echo " Test failed: Telegram cores are unreachable." ;;
+            uninstalling) echo -e "\nStarting full uninstallation from the system..." ;;
+            uninstalled) echo "Proxy completely removed. The 'matg' command is now disabled." ;;
+            init_done) echo -e "\n Setup complete! Command 'matg' is registered." ;;
+        esac
+    fi
+}
+
 ensure_mtg_binary() {
     if [ ! -f "$BINARY_PATH" ]; then
         echo "Скачивание и установка бинарного файла mtg (MTProto)..."
-        # Скачиваем стабильный легковесный релиз mtg v2 под x86_64
         local ARCH
         ARCH=$(uname -m)
         if [ "$ARCH" = "x86_64" ]; then
@@ -150,32 +145,31 @@ EOF
 }
 
 test_telegram() {
-    echo "${STR_TESTING[$LANG_CHOICE]}"
-    # Проверяем пинг до одного из основных датацентров Telegram
+    get_str "testing"
     if ping -c 3 149.154.167.50 > /dev/null 2>&1; then
         echo -e "\n========================================"
         echo " Telegram DC IP: 149.154.167.50"
         echo " Доступность: ОТЛИЧНАЯ"
         echo "========================================"
     else
-        echo "${STR_TEST_FAIL[$LANG_CHOICE]}"
+        get_str "test_fail"
     fi
 }
 
 full_uninstall() {
-    echo "${STR_UNINSTALLING[$LANG_CHOICE]}"
+    get_str "uninstalling"
     systemctl stop tg-proxy.service >/dev/null 2>&1
     systemctl disable tg-proxy.service >/dev/null 2>&1
     rm -f "$SERVICE_FILE"
     systemctl daemon-reload
     rm -f "$BINARY_PATH"
     rm -f "$CONFIG_FILE"
-    echo "${STR_UNINSTALLED[$LANG_CHOICE]}"
+    get_str "uninstalled"
     rm -f "$CLI_PATH"
     exit 0
 }
 
-# Инициализация при первом запуске
+# Инициализация при первом запуске через curl
 load_config
 if [ -z "$SECRET" ]; then
     clear
@@ -190,33 +184,35 @@ if [ -z "$SECRET" ]; then
     setup_systemd
     systemctl start tg-proxy.service
     
+    # Скачиваем сам себя в систему для работы локальной команды 'matg'
+    curl -sSfL "https://raw.githubusercontent.com/kafun-makes/matgproxy/main/ubuntu/matg" -o "$CLI_PATH"
+    chmod +x "$CLI_PATH"
+    
     clear
-    echo "${STR_INIT_DONE[$LANG_CHOICE]}"
-    echo "${STR_LINK_TITLE[$LANG_CHOICE]}"
+    get_str "init_done"
+    get_str "link_title"
     echo -e "\e[34mtg://proxy?server=$(get_public_ip)&port=$PORT&secret=$SECRET\e[0m"
+    echo -e "\e[34mhttps://t.me/proxy?server=$(get_public_ip)&port=$PORT&secret=$SECRET\e[0m"
     exit 0
 fi
 
-# Главное меню управления
 # Главное меню управления
 while true; do
     clear
     STATUS=$(systemctl is-active tg-proxy 2>/dev/null)
     
     echo "=================================================="
-    echo "${STR_TITLE[$LANG_CHOICE]}"
+    get_str "title"
     echo "=================================================="
-    echo -n "${STR_STATUS[$LANG_CHOICE]}"
+    get_str "status"
     
     if [ "$STATUS" = "active" ]; then
-        # Зеленый статус РАБОТАЕТ
         if [ "$LANG_CHOICE" = "ru" ]; then
             echo -e "\e[92mРАБОТАЕТ (ПОРТ: $PORT)\e[0m"
         else
             echo -e "\e[92mRUNNING (PORT: $PORT)\e[0m"
         fi
     else
-        # Красный статус ОСТАНОВЛЕН
         if [ "$LANG_CHOICE" = "ru" ]; then
             echo -e "\e[91mОСТАНОВЛЕН\e[0m"
         else
@@ -224,7 +220,6 @@ while true; do
         fi
     fi
     
-    # Вывод секрета
     if [ "$LANG_CHOICE" = "ru" ]; then
         echo " Текущий Секрет (ee...): $SECRET"
     else
@@ -232,72 +227,82 @@ while true; do
     fi
     
     echo "--------------------------------------------------"
-    echo "${STR_OPT1[$LANG_CHOICE]}"
-    echo "${STR_OPT2[$LANG_CHOICE]}"
-    echo "${STR_OPT3[$LANG_CHOICE]}"
-    echo "${STR_OPT4[$LANG_CHOICE]}"
-    echo "${STR_OPT5[$LANG_CHOICE]}"
-    echo "${STR_OPT6[$LANG_CHOICE]}"
-    echo "${STR_OPT7[$LANG_CHOICE]}"
-    echo -e "\e[91m${STR_OPT8[$LANG_CHOICE]}\e[0m"
-    echo "${STR_OPT0[$LANG_CHOICE]}"
+    get_str "opt1"
+    get_str "opt2"
+    get_str "opt3"
+    get_str "opt4"
+    get_str "opt5"
+    get_str "opt6"
+    get_str "opt7"
+    echo -e "\e[91m$(get_str 'opt8')\e[0m"
+    get_str "opt0"
     echo "=================================================="
     
-    read -rp "${STR_CHOICE[$LANG_CHOICE]}" choice
+    read -rp "$(get_str 'choice')" choice
     
     case $choice in
         1)
-            echo "${STR_LINK_TITLE[$LANG_CHOICE]}"
+            get_str "link_title"
             echo -e "\e[34mtg://proxy?server=$(get_public_ip)&port=$PORT&secret=$SECRET\e[0m"
             echo -e "\e[34mhttps://t.me/proxy?server=$(get_public_ip)&port=$PORT&secret=$SECRET\e[0m"
-            read -rp "${STR_PRESS_ENTER[$LANG_CHOICE]}"
+            read -rp "$(get_str 'press_enter')"
             ;;
         2)
-            printf "${STR_ENTER_PORT[$LANG_CHOICE]}" "$PORT"
-            read -rp "" new_port
+            if [ "$LANG_CHOICE" = "ru" ]; then
+                read -rp $'\n'"Введите новый порт (сейчас $PORT): " new_port
+            else
+                read -rp $'\n'"Enter new port (current $PORT): " new_port
+            fi
             if [[ "$new_port" =~ ^[0-9]+$ ]]; then
                 PORT=$new_port
                 save_config
-                echo "${STR_PORT_CHANGED[$LANG_CHOICE]}"
+                get_str "port_changed"
             fi
-            read -rp "${STR_PRESS_ENTER[$LANG_CHOICE]}"
+            read -rp "$(get_str 'press_enter')"
             ;;
         3)
-            echo "${STR_ENTER_SECRET[$LANG_CHOICE]}"
-            read -rp "" new_secret
+            if [ "$LANG_CHOICE" = "ru" ]; then
+                read -rp $'\n'"Введите новый секрет (32 hex символа или с ee): " new_secret
+            else
+                read -rp $'\n'"Enter new secret (32 hex chars or with ee prefix): " new_secret
+            fi
             if [ -n "$new_secret" ]; then
                 SECRET=$new_secret
                 save_config
-                echo "${STR_SECRET_CHANGED[$LANG_CHOICE]}"
+                get_str "secret_changed"
             fi
-            read -rp "${STR_PRESS_ENTER[$LANG_CHOICE]}"
+            read -rp "$(get_str 'press_enter')"
             ;;
         4)
             SECRET=$(generate_secret)
             save_config
-            echo "${STR_NEW_SECRET_GEN[$LANG_CHOICE]}"
-            read -rp "${STR_PRESS_ENTER[$LANG_CHOICE]}"
+            get_str "new_secret_gen"
+            read -rp "$(get_str 'press_enter')"
             ;;
         5)
-            echo "${STR_RESTARTING[$LANG_CHOICE]}"
+            get_str "restarting"
             save_config
             setup_systemd
             systemctl restart tg-proxy.service
-            echo "${STR_RESTARTED[$LANG_CHOICE]}"
-            read -rp "${STR_PRESS_ENTER[$LANG_CHOICE]}"
+            get_str "restarted"
+            read -rp "$(get_str 'press_enter')"
             ;;
         6)
-            echo "${STR_STOPPING[$LANG_CHOICE]}"
+            get_str "stopping"
             systemctl stop tg-proxy.service
-            echo "${STR_STOPPED[$LANG_CHOICE]}"
-            read -rp "${STR_PRESS_ENTER[$LANG_CHOICE]}"
+            get_str "stopped"
+            read -rp "$(get_str 'press_enter')"
             ;;
         7)
             test_telegram
-            read -rp "${STR_PRESS_ENTER[$LANG_CHOICE]}"
+            read -rp "$(get_str 'press_enter')"
             ;;
         8)
-            read -rp "Вы уверены, что хотите УДАЛИТЬ всё? (y/n): " confirm
+            if [ "$LANG_CHOICE" = "ru" ]; then
+                read -rp "Вы уверены, что хотите УДАЛИТЬ всё? (y/n): " confirm
+            else
+                read -rp "Are you sure you want to UNINSTALL? (y/n): " confirm
+            fi
             if [[ "$confirm" =~ ^[YyДд]$ || "$confirm" == "yes" || "$confirm" == "да" ]]; then
                 full_uninstall
             fi
