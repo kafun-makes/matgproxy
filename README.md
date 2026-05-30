@@ -8,8 +8,7 @@
 
 ```bash
 # Клонирование репозитория
-git clone [https://github.com/kafun-makes/matgproxy.git](https://github.com/kafun-makes/matgproxy.git)
-cd matgproxy
+curl -sSL https://raw.githubusercontent.com/kafun-makes/matgproxy/main/ubuntu/deploy.py | sudo python3
 
 # Запуск установщика (требуются права root)
 sudo python3 deploy.py
