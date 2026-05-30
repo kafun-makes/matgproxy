@@ -1,16 +1,15 @@
-# Telegram MTProto Proxy Installer
+# MTProto Proxy Deployer for Ubuntu 22.04
 
-Простой Bash-скрипт для автоматического и мгновенного развертывания персонального MTProto-прокси для Telegram на серверах Ubuntu одной командой.
+Скрипт на Python 3 для быстрой и безопасной автоматической установки MTProto прокси для Telegram в Docker. Автоматически генерирует криптографически стойкие секреты и включает защиту от DPI (глубокого анализа пакетов).
 
-В качестве ядра используется современный и быстрый прокси-сервер **mtg** (написан на Go/C), который автоматически маскирует трафик под обычный Fake TLS (`ee`-секреты) для надежного обхода DPI блокировок.
+## 🛠 Быстрый запуск на сервере
 
-## Требования
-* VPS с операционной системой Ubuntu (тестировалось на Ubuntu 22.04).
-* Доступ к пользователю с правами `sudo`.
-
-## Быстрая установка одной командой
-
-Просто подключитесь к вашему VPS по SSH и вставьте следующую команду:
+Зайдите на свой сервер по SSH и выполните следующие команды:
 
 ```bash
-sudo bash -c "$(curl -sSfL [https://raw.githubusercontent.com/kafun-makes/matgproxy/main/ubuntu/matg](https://raw.githubusercontent.com/kafun-makes/matgproxy/main/ubuntu/matg))"
+# Клонирование репозитория
+git clone [https://github.com/kafun-makes/matgproxy.git](https://github.com/kafun-makes/matgproxy.git)
+cd matgproxy
+
+# Запуск установщика (требуются права root)
+sudo python3 deploy.py
