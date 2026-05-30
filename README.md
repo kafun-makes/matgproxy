@@ -7,4 +7,4 @@
 Зайдите на свой сервер по SSH и выполните следующие команды:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/kafun-makes/matgproxy/main/ubuntu/deploy.py | bash
+curl -sSL https://raw.githubusercontent.com/kafun-makes/matgproxy/main/ubuntu/deploy.sh | bash
