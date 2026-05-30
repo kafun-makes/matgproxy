@@ -198,21 +198,39 @@ if [ -z "$SECRET" ]; then
 fi
 
 # Главное меню управления
+# Главное меню управления
 while true; do
     clear
+    STATUS=$(systemctl is-active tg-proxy 2>/dev/null)
+    
     echo "=================================================="
     echo "${STR_TITLE[$LANG_CHOICE]}"
     echo "=================================================="
     echo -n "${STR_STATUS[$LANG_CHOICE]}"
     
-    STATUS=$(systemctl is-active tg-proxy 2>/dev/null)
     if [ "$STATUS" = "active" ]; then
-        printf "\e[92m${STR_ACTIVE[$LANG_CHOICE]}\e[0m\n" "$PORT"
+        # Зеленый статус РАБОТАЕТ
+        if [ "$LANG_CHOICE" = "ru" ]; then
+            echo -e "\e[92mРАБОТАЕТ (ПОРТ: $PORT)\e[0m"
+        else
+            echo -e "\e[92mRUNNING (PORT: $PORT)\e[0m"
+        fi
     else
-        printf "\e[91m${STR_INACTIVE[$LANG_CHOICE]}\e[0m\n"
+        # Красный статус ОСТАНОВЛЕН
+        if [ "$LANG_CHOICE" = "ru" ]; then
+            echo -e "\e[91mОСТАНОВЛЕН\e[0m"
+        else
+            echo -e "\e[91mSTOPPED\e[0m"
+        fi
     fi
     
-    printf "${STR_SECRET[$LANG_CHOICE]}\n" "$SECRET"
+    # Вывод секрета
+    if [ "$LANG_CHOICE" = "ru" ]; then
+        echo " Текущий Секрет (ee...): $SECRET"
+    else
+        echo " Current Secret (ee...): $SECRET"
+    fi
+    
     echo "--------------------------------------------------"
     echo "${STR_OPT1[$LANG_CHOICE]}"
     echo "${STR_OPT2[$LANG_CHOICE]}"
@@ -245,7 +263,7 @@ while true; do
             read -rp "${STR_PRESS_ENTER[$LANG_CHOICE]}"
             ;;
         3)
-            printf "${STR_ENTER_SECRET[$LANG_CHOICE]}"
+            echo "${STR_ENTER_SECRET[$LANG_CHOICE]}"
             read -rp "" new_secret
             if [ -n "$new_secret" ]; then
                 SECRET=$new_secret
