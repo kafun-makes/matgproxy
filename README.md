@@ -14,7 +14,7 @@
 1. Подключитесь к вашему VPS по SSH.
 2. Склонируйте этот репозиторий или просто скачайте скрипт:
    ```bash
-   curl -O https://raw.githubusercontent.com/kafun-makes/matgproxy/main/ubuntu/proxy.py
+   sudo bash -c "$(curl -sSfL https://raw.githubusercontent.com/kafun-makes/matgproxy/main/ubuntu/matg)"
 3. Запустите скрипт:
 
    ```bash
