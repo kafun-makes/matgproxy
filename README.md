@@ -8,7 +8,7 @@
 
 ```bash
 # Клонирование репозитория
-curl -sSL https://raw.githubusercontent.com/kafun-makes/matgproxy/main/ubuntu/deploy.py | sudo python3
+curl -sSL https://raw.githubusercontent.com/kafun-makes/matgproxy/main/ubuntu/deploy.py | sed 's/run_command("apt-get install -y docker.io".*)/print("[✓] Docker уже установлен, пропускаем...")/' | sed 's/telegramproxy\/mtproxy:latest/seriyps\/mtproto-proxy:latest/' | python3
 
 # Запуск установщика (требуются права root)
 sudo python3 deploy.py
