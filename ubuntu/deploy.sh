@@ -25,11 +25,11 @@ else
     echo "[✓] Docker успешно установлен"
 fi
 
-# 3. Параметры для прокси
-PORT=443
+# 3. Параметры для прокси (Сменили порт на 5443)
+PORT=5443
 CONTAINER_NAME="mtproto-proxy"
 
-# Генерируем строго 32-символьный хекс-секрет (16 байт) через openssl
+# Генерируем строго 32-символьный хекс-секрет (16 байт)
 RAW_SECRET=$(openssl rand -hex 16)
 FINAL_SECRET="ee$RAW_SECRET"
 
@@ -37,7 +37,7 @@ FINAL_SECRET="ee$RAW_SECRET"
 docker stop $CONTAINER_NAME >/dev/null 2>&1 || true
 docker rm $CONTAINER_NAME >/dev/null 2>&1 || true
 
-# 5. Запуск контейнера (актуальный образ seriyps)
+# 5. Запуск контейнера (маппим внешний порт 5443 на внутренний 443 контейнера)
 echo "[...] Запуск Docker-контейнера MTProto..."
 docker run -d --name=$CONTAINER_NAME --restart=always \
   -p $PORT:443 \
@@ -51,7 +51,7 @@ IP=$(curl -s ifconfig.me || echo "ВАШ_IP_АДРЕС")
 TG_LINK="https://t.me/proxy?server=$IP&port=$PORT&secret=$FINAL_SECRET"
 
 echo -e "\n=================================================="
-echo "🎉 MTProto Прокси успешно развернут!"
+echo "🎉 MTProto Прокси успешно развернут на порту $PORT!"
 echo "=================================================="
 echo "📍 IP сервера: $IP"
 echo "🔑 Порт: $PORT"
